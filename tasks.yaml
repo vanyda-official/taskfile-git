@@ -1,0 +1,56 @@
+version: '3'
+
+vars:
+  DEFAULT_GIT_PRE_COMMIT_PATTERN: ".*\\pre-commit$"
+
+tasks:
+  default:
+    cmd:
+      task: install
+
+  install:
+    desc: Install git pre-commit hook
+    run: once
+    summary: |
+      Install GIT pre-commit hook.
+      This hook will stash everything that is untracked and execute all task
+      that end with `{{.DEFAULT_GIT_PRE_COMMIT_PATTERN}}` will be executed.
+      
+      Once all task are executed, the scripts ends and restore previous stash.
+      
+      The following variables are available:
+      
+      | VARIABLE       | DESCRIPTION                    | DEFAULT |
+      |----------------|--------------------------------|---------|
+      | `PATTERN`      | the task name pattern to match | `{{.DEFAULT_GIT_PRE_COMMIT_PATTERN}}` |
+
+      Examples:
+        - `task {{.TASK}}` will install the pre-commit hook
+    cmds:
+      - if [ -f {{.PRE_COMMIT_FILE}} ]; then mv {{.PRE_COMMIT_FILE}} {{.PRE_COMMIT_FILE}}.old;fi;
+      - echo "${PRE_COMMIT}" > {{.PRE_COMMIT_FILE}}
+      - chmod u+x {{.ROOT_DIR}}/.git/hooks/pre-commit
+    vars:
+      PATTERN: '{{.PATTERN | default .DEFAULT_GIT_PRE_COMMIT_PATTERN}}'
+      PRE_COMMIT_FILE: '{{.ROOT_DIR}}/.git/hooks/pre-commit'
+    env:
+      PRE_COMMIT: |
+        #!/bin/bash
+        ## DO NOT EDIT, generated file ##
+  
+        git stash --keep-index --include-untracked --quiet
+        
+        exitCode=0
+        
+        task {{.TASK}} || exitCode=$?
+        task -a --json | jq -c '[ (.tasks[] | select( .name | test({{.PATTERN | quote}}))) | .name] | .[]' | xargs -L1 -I'{}' task {} || exitCode=$?
+        
+        if [ $exitCode -eq 0 ]; then
+        git add .
+        else
+        git stash --keep-index --include-untracked --quiet && git stash drop --quiet
+        fi
+        
+        git stash pop --quiet
+        
+        exit $exitCode
