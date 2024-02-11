@@ -22,8 +22,8 @@ pre-commit tasks.
 
 ## Prerequisites
 
-- [Task](https://taskfile.dev/): A task runner / simpler Make alternative written in Go.
-- [jq](https://stedolan.github.io/jq/): A command-line JSON processor.
+* [Task](https://taskfile.dev/): A task runner / simpler Make alternative written in Go.
+* [jq](https://stedolan.github.io/jq/): A command-line JSON processor.
 
 Make sure these are installed and configured in your system before proceeding.
 
@@ -31,7 +31,7 @@ Make sure these are installed and configured in your system before proceeding.
 
 The supplied Taskfile utilizes the following variable to define the pattern that triggers tasks on pre-commit:
 
-- `DEFAULT_GIT_PRE_COMMIT_PATTERN`: Regex pattern for the name of tasks to execute as pre-commit hooks (default
+* `DEFAULT_GIT_PRE_COMMIT_PATTERN`: Regex pattern for the name of tasks to execute as pre-commit hooks (default
   is  `.*\pre-commit$`).
 
 While it is possible to update the configuration, this is not recommended. The default pattern `.*\pre-commit$` is
